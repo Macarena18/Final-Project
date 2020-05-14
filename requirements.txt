@@ -1,0 +1,11 @@
+flask
+pymongo
+python-dotenv
+dnspython
+pandas
+nltk
+scikit-learn
+jsonschema
+regex
+requests
+sklearn
