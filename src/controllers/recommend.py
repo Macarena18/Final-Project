@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from src.app import app
 from src.config import *
 from bson.json_util import dumps
@@ -105,11 +106,12 @@ def similaratings(movieid): # similar movies by ranking
                 #get the title of the movie
                 get_movie = movies_df.loc[movies_df['movieId']==movies_table.iloc[indices_flat,:].name]['title']
                 #print the movie
-                return('{0}: {1}, with distance of {2}:'.format(i,get_movie,distances.flatten()[i]))    
+                print('{0}: {1}, with distance of {2}:'.format(i,get_movie,distances.flatten()[i]))    
+
 
 #Recommending movie which user hasn't watched as per Item Similarity/User Similarity
 
-"""
+#Item Similarity
 ratings_matrix_items = movies_ratings.pivot_table(index=['movieId'],columns=['userId'],values='rating').reset_index(drop=True)
 ratings_matrix_items.fillna( 0, inplace = True )
 movie_similarity = 1 - pairwise_distances( ratings_matrix_items.to_numpy(), metric="cosine" )
@@ -122,7 +124,7 @@ def item_similarity(movieName):
         inp=movies_df[movies_df['title']==user_inp].index.tolist()
         inp=inp[0]
         movies_df['similarity'] = ratings_matrix_items.iloc[inp]
-        movies_df.columns = ['movie_id', 'title', 'release_date','similarity']
+        movies_df.columns = ['movieId', 'title', 'release_date','similarity']
     except:
         print("Sorry, the movie is not in the database!")
 
@@ -131,7 +133,7 @@ def recommendedMoviesAsperItemSimilarity(user_id):#Recommending movie which user
     user_movie=user_movie.iloc[0,0]
     item_similarity(user_movie)
     sorted_movies_as_per_userChoice=movies_df.sort_values( ["similarity"], ascending = False )
-    sorted_movies_as_per_userChoice=sorted_movies_as_per_userChoice[sorted_movies_as_per_userChoice['similarity'] >=0.45]['movie_id']
+    sorted_movies_as_per_userChoice=sorted_movies_as_per_userChoice[sorted_movies_as_per_userChoice['similarity'] >=0.45]['movieId']
     recommended_movies=list()
     df_recommended_item=pd.DataFrame()
     user2Movies= ratings_df[ratings_df['userId']== user_id]['movieId']
@@ -145,12 +147,25 @@ def recommendedMoviesAsperItemSimilarity(user_id):#Recommending movie which user
 def movieIdToTitle(listMovieIDs):
     movie_titles= list()
     for id in listMovieIDs:
-        movie_titles.append(movies_df[movies_df['movie_id']==id]['title'])
+        movie_titles.append(movies_df[movies_df['movieId']==id]['title'])
     return movie_titles
 
-#user_id=50
-#movieIdToTitle(recommendedMoviesAsperItemSimilarity(user_id)))
+@app.route("/movies/recommend/similarity/<user_id>", methods=["GET"])
+def getitemsimilarity(user_id):
+    result=movieIdToTitle(recommendedMoviesAsperItemSimilarity(user_id))
+    return dumps(result)
 
+#User Similarity
+
+ratings_matrix_users = movies_ratings.pivot_table(index=['userId'],columns=['movieId'],values='rating').reset_index(drop=True)
+ratings_matrix_users.fillna( 0, inplace = True )
+movie_similarity = 1 - pairwise_distances( ratings_matrix_users.to_numpy(), metric="cosine" )
+np.fill_diagonal( movie_similarity, 0 ) 
+ratings_matrix_users = pd.DataFrame( movie_similarity )
+ratings_matrix_users.idxmax(axis=1)
+ratings_matrix_users.idxmax(axis=1).sample( 10, random_state = 10 )
+similar_user_series= ratings_matrix_users.idxmax(axis=1)
+df_similar_user= similar_user_series.to_frame()
 
 def getRecommendedMoviesAsperUserSimilarity(userId):#Recommending movies which user hasn't watched as per User Similarity
     user2Movies= ratings_df[ratings_df['userId']== userId]['movieId']
@@ -160,9 +175,10 @@ def getRecommendedMoviesAsperUserSimilarity(userId):#Recommending movies which u
         if movieId not in user2Movies:
             df_new= movies_ratings[(movies_ratings.userId==sim_user) & (movies_ratings.movieId==movieId)]
             df_recommended=pd.concat([df_recommended,df_new])
-        best10=df_recommended.sort_values(['rating'], ascending = False )[1:21]  
-    return best10['movieId']
+        top_movies=df_recommended.sort_values(['rating'], ascending = False )[1:21]  
+    return top_movies['movieId']
 
-#user_id=50
-#movieIdToTitle(getRecommendedMoviesAsperUserSimilarity(user_id))
-"""
+@app.route("/movies/recommend/usersimilarity/<user_id>", methods=["GET"])
+def getusersimilarity(user_id):
+    result=movieIdToTitle(getRecommendedMoviesAsperUserSimilarity(user_id))
+    return dumps(result)
