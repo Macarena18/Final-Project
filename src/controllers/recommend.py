@@ -20,7 +20,7 @@ def TopMovies():
     movies_details=list(db.details.find({},{"_id":0,"title":1,"genres":1,"year":1,"imdbId":1,"tmdbId":1,"idmb_rank":1}))
     movies_info=pd.DataFrame(json_normalize(movies_details))
     top_movies=movies_info.sort_values(['idmb_rank'],ascending=False)[:20]
-    return dumps(top_movies)
+    return dumps({"top_ranked_movies":top_movies})
 
 @app.route("/genres/<genre>", methods=["GET"])#Find top movies by genre
 def moviesGenre(genre):
@@ -30,7 +30,7 @@ def moviesGenre(genre):
     return dumps({"movieid":top_movies["movieId"],"title":top_movies["title"],"genres":top_movies["genres"],"year":top_movies["year"],"IDMB rating":top_movies["idmb_rank"]})
 
 
-# Recommend movies:
+# Content Based Filtering:
 
 ratings=list(db.ratings.find({},{"_id":0,"userId":1,"movieId":1,"rating":1}))
 ratings_df=pd.DataFrame(json_normalize(ratings))
@@ -42,7 +42,7 @@ movies_ratings.drop(columns=["imdbId","tmdbId"],inplace=True)
 movie_rating_average = pd.DataFrame(ratings_df.groupby('movieId')['rating'].agg(['count','mean']))
 
 @app.route("/movies/recommend/content/<movie_title>", methods=["GET"])
-def get_similar_movies(movie_title):#Find top 20 movies to recommend based on similarity content:
+def get_similar_movies(movie_title):#Find top 20 movies to recommend based on similarity content
     tfidf_movies_genres = TfidfVectorizer(token_pattern = '[a-zA-Z0-9\-]+')
     movies_df['genres'] = movies_df['genres'].replace(to_replace="(no genres listed)", value="")
     tfidf_movies_genres_matrix = tfidf_movies_genres.fit_transform(movies_df['genres'])
@@ -51,10 +51,10 @@ def get_similar_movies(movie_title):#Find top 20 movies to recommend based on si
     idx_movie = idx_movie.index
     sim_scores_movies = list(enumerate(cosine_sim_movies[idx_movie][0]))# Get the pairwsie similarity scores of all movies with that movie
     sim_scores_movies = sorted(sim_scores_movies, key=lambda x: x[1], reverse=True)# Sort the movies based on the similarity scores
-    sim_scores_movies = sim_scores_movies[1:21]## Get the scores of the 10 most similar movies
+    sim_scores_movies = sim_scores_movies[1:21]## Get the scores of the 20 most similar movies
     movie_indices = [i[0] for i in sim_scores_movies] ## Get the movie indices
     top_movies=movies_df['title'].iloc[movie_indices]
-    return dumps(top_movies) # Return the top 20 most similar movies
+    return dumps({"top_similar_content_movies":top_movies}) # Return the top 20 most similar movies
 
 @app.route("/movies/recommend/users/<movie>", methods=["GET"])
 def similarmovies(movie): #Find top 20 movies watched for users that saw the same movie
@@ -88,7 +88,8 @@ def get_user_similarmovie(userid):#Find top movies to be recommended to user bas
             recommended_movie_list.remove(movie_title)
     return set(recommended_movie_list)
 
-@app.route("/movies/recommend/ratings/<movieid>")
+
+#@app.route("/movies/recommend/ratings/<movieid>")
 def similaratings(movieid): # similar movies by ranking
         movies_filtered=movie_rating_average.loc[movie_rating_average['count']>=10]
         filtered_ratings = pd.merge(movies_filtered, ratings_df, on="movieId")
@@ -101,84 +102,10 @@ def similaratings(movieid): # similar movies by ranking
             if i==0:
                 print('Recommendations for {0}:\n'.format(get_movie))
             else :
-                #get the indiciees for the closest movies
+                #get the indices for the closest movies
                 indices_flat = indices.flatten()[i]
                 #get the title of the movie
                 get_movie = movies_df.loc[movies_df['movieId']==movies_table.iloc[indices_flat,:].name]['title']
                 #print the movie
-                print('{0}: {1}, with distance of {2}:'.format(i,get_movie,distances.flatten()[i]))    
+                print('{0}: {1}:'.format(i,get_movie,distances.flatten()[i]))    
 
-
-#Recommending movie which user hasn't watched as per Item Similarity/User Similarity
-
-#Item Similarity
-ratings_matrix_items = movies_ratings.pivot_table(index=['movieId'],columns=['userId'],values='rating').reset_index(drop=True)
-ratings_matrix_items.fillna( 0, inplace = True )
-movie_similarity = 1 - pairwise_distances( ratings_matrix_items.to_numpy(), metric="cosine" )
-np.fill_diagonal( movie_similarity, 0 ) #Filling diagonals with 0s for future use when sorting is done
-ratings_matrix_items = pd.DataFrame( movie_similarity )
-
-def item_similarity(movieName): 
-    try:
-        user_inp=movieName
-        inp=movies_df[movies_df['title']==user_inp].index.tolist()
-        inp=inp[0]
-        movies_df['similarity'] = ratings_matrix_items.iloc[inp]
-        movies_df.columns = ['movieId', 'title', 'release_date','similarity']
-    except:
-        print("Sorry, the movie is not in the database!")
-
-def recommendedMoviesAsperItemSimilarity(user_id):#Recommending movie which user hasn't watched as per Item Similarity
-    user_movie= movies_ratings[(movies_ratings.userId==user_id) & movies_ratings.rating.isin([5,4.5])][['title']]
-    user_movie=user_movie.iloc[0,0]
-    item_similarity(user_movie)
-    sorted_movies_as_per_userChoice=movies_df.sort_values( ["similarity"], ascending = False )
-    sorted_movies_as_per_userChoice=sorted_movies_as_per_userChoice[sorted_movies_as_per_userChoice['similarity'] >=0.45]['movieId']
-    recommended_movies=list()
-    df_recommended_item=pd.DataFrame()
-    user2Movies= ratings_df[ratings_df['userId']== user_id]['movieId']
-    for movieId in sorted_movies_as_per_userChoice:
-            if movieId not in user2Movies:
-                df_new= ratings_df[(ratings_df.movieId==movieId)]
-                df_recommended_item=pd.concat([df_recommended_item,df_new])
-            top_movies=df_recommended_item.sort_values(["rating"], ascending = False )[1:21] 
-    return top_movies['movieId']
-
-def movieIdToTitle(listMovieIDs):
-    movie_titles= list()
-    for id in listMovieIDs:
-        movie_titles.append(movies_df[movies_df['movieId']==id]['title'])
-    return movie_titles
-
-@app.route("/movies/recommend/similarity/<user_id>", methods=["GET"])
-def getitemsimilarity(user_id):
-    result=movieIdToTitle(recommendedMoviesAsperItemSimilarity(user_id))
-    return dumps(result)
-
-#User Similarity
-
-ratings_matrix_users = movies_ratings.pivot_table(index=['userId'],columns=['movieId'],values='rating').reset_index(drop=True)
-ratings_matrix_users.fillna( 0, inplace = True )
-movie_similarity = 1 - pairwise_distances( ratings_matrix_users.to_numpy(), metric="cosine" )
-np.fill_diagonal( movie_similarity, 0 ) 
-ratings_matrix_users = pd.DataFrame( movie_similarity )
-ratings_matrix_users.idxmax(axis=1)
-ratings_matrix_users.idxmax(axis=1).sample( 10, random_state = 10 )
-similar_user_series= ratings_matrix_users.idxmax(axis=1)
-df_similar_user= similar_user_series.to_frame()
-
-def getRecommendedMoviesAsperUserSimilarity(userId):#Recommending movies which user hasn't watched as per User Similarity
-    user2Movies= ratings_df[ratings_df['userId']== userId]['movieId']
-    sim_user=df_similar_user.iloc[0,0]
-    df_recommended=pd.DataFrame(columns=['movieId','title','genres','userId','rating','timestamp'])
-    for movieId in ratings_df[ratings_df['userId']== sim_user]['movieId']:
-        if movieId not in user2Movies:
-            df_new= movies_ratings[(movies_ratings.userId==sim_user) & (movies_ratings.movieId==movieId)]
-            df_recommended=pd.concat([df_recommended,df_new])
-        top_movies=df_recommended.sort_values(['rating'], ascending = False )[1:21]  
-    return top_movies['movieId']
-
-@app.route("/movies/recommend/usersimilarity/<user_id>", methods=["GET"])
-def getusersimilarity(user_id):
-    result=movieIdToTitle(getRecommendedMoviesAsperUserSimilarity(user_id))
-    return dumps(result)
