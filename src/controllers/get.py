@@ -7,17 +7,17 @@ from pandas.io.json import json_normalize
 
 @app.route("/", methods=["GET"]) #return welcome message
 def welcome():
-    return dumps("Welcome to the API - Movie Recommendation") 
+    return dumps("Welcome to the API - Movie Recommendation System") 
 
 @app.route("/movies", methods=["GET"]) # return all  movies in the dataset
 def movies():
     movies=(db.movies.distinct("title"))
     return dumps({"movies_list":movies})
 
-@app.route("/users", methods=["GET"]) # return all users in the dataset
+@app.route("/users", methods=["GET"]) # return all users in the dataset∫
 def users():
     users=(db.ratings.distinct("userId"))
-    return dumps({"users_list":users})
+    return dumps("users_list":users})
 
 @app.route("/movies/<movie>", methods=["GET"]) # return details for an  specific movie
 def selectmovie(movie):
