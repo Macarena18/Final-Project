@@ -1,10 +1,12 @@
 # Movies Recommender System - Project
 
-**Steps:**
 
-* Data Analysis
-* Recommender System:
-    * **Content based filtering** <Sklearn>-> recommend movies based on the similarity content of the movies
+**Datasets:** The data set used for this project is the 1M ratings data set from MovieLens <https://grouplens.org/datasets/movielens/>
+
+**Steps:**
+* Data Analysis ´DataAnalysis.ipynb´
+* Recommender System: ´RecommenderSystem.ipynb´
+    * **Content based filtering** <Sklearn>
     * **Collaborative filtering**:
          * **Memory based collaborative filtering:**<Sklearn>
                 * *User-Item Filtering* 
@@ -15,15 +17,12 @@
          * **Evaluating Collaborative Filtering using SVD** 
     * **Hybrid Model** <Content Based Filtering + SVD:> - Rating Prediction
 
-**Datasets:**
-The data set used for this project is the 1M ratings data set from MovieLens <https://grouplens.org/datasets/movielens/>
-    
 
-# How to use the API?
+### How to use the API?
 
 Link ->
 
-## API EndPoints: `Apitest.ipynb`
+**API EndPoints: `Apitest.ipynb`**
 
 doc ´get.py´:
  - *"/"* --> **API Welcome Message**
@@ -51,8 +50,8 @@ doc ´predictions.py´:
 
 **Built With:**
 Sklearn - Machine learning library
-seaborn, matplotlib.pyplot, - Visualization libraries
-numpy, scipy - Number Python Library
-pandas - Data Handling Library
+Seaborn, Matplotlib.pyplot, - Visualization libraries
+Numpy, Scipy - Number Python Library
+Pandas - Data Handling Library
 Singular Value Decomposition(SVD) model and SVD++  - Used for making regression models
 Surprise Libray - Used for making recommendation system models
