@@ -18,13 +18,13 @@
     * **Hybrid Model** <Content Based Filtering + SVD:> - Rating Prediction
 
 
-### How to use the API?
+### **How to use the API?**
 
 Link ->
 
 **API EndPoints: `Apitest.ipynb`**
 
-doc ´get.py´:
+**doc ´get.py´:**
  - *"/"* --> **API Welcome Message**
  - *"/movies"* --> **Get all movies**
  -* "/movies/<movie>"* --> **Get details for an specific movie**
@@ -34,17 +34,17 @@ doc ´get.py´:
  - *"/year/<year>"* --> **Get all movies for an specific year**
  - *"/genres"* --> **Get all genres**
 
- doc ´recommend.py´:
+ **doc ´recommend.py´:**
 - *"/movies/top"* --> **Recommend top ranked movies**
 - *"/genres/<genre>"* --> **Recommend top ranked movies for an specific genre**
 - *"/movies/recommend/content/<movie_title>"* --> **Recommend top 20 movies based on similarity content**
 - *"/movies/recommend/users/<movie>"* --> **Recommend top 20 movies watched for users that saw the same movie**
 
-doc ´collaborativefiltering.py´:
+**doc ´collaborativefiltering.py´:**
 - *"/movies/recommend/similarity/<user_id>"* --> **Recommend top 20 movies which user hasn't watched as per Item Similarity**
 - *"/movies/recommend/usersimilarity/<user_id>"* --> **Recommend top 20 movies which user hasn't watched as per User Similarity**
 
-doc ´predictions.py´:
+**doc ´predictions.py´:**
 - *"/ratings/prediction/<userId>"* --> **Recommend top 20 movies and predict the rating that the user would give to a movie that he has not yet rated**
 
 
