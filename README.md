@@ -18,9 +18,7 @@
     * **Hybrid Model** <Content Based Filtering + SVD:> - Rating Prediction
 
 
-### **How to use the API?**
-
-Link ->
+## How to use the API?
 
 **API EndPoints: `Apitest.ipynb`**
 
@@ -49,9 +47,9 @@ Link ->
 
 
 **Built With:**
-Sklearn - Machine learning library
-Seaborn, Matplotlib.pyplot, - Visualization libraries
-Numpy, Scipy - Number Python Library
-Pandas - Data Handling Library
-Singular Value Decomposition(SVD) model and SVD++  - Used for making regression models
-Surprise Libray - Used for making recommendation system models
+* Sklearn - Machine learning library
+* Seaborn, Matplotlib.pyplot, - Visualization libraries
+* Numpy, Scipy - Number Python Library
+* Pandas - Data Handling Library
+* Singular Value Decomposition(SVD) model and SVD++  - Used for making regression models
+* Surprise Libray - Used for making recommendation system models
