@@ -51,8 +51,8 @@ def get_similar_movies(movie_title):#Find top 20 movies to recommend based on si
     idx_movie = idx_movie.index
     sim_scores_movies = list(enumerate(cosine_sim_movies[idx_movie][0]))# Get the pairwsie similarity scores of all movies with that movie
     sim_scores_movies = sorted(sim_scores_movies, key=lambda x: x[1], reverse=True)# Sort the movies based on the similarity scores
-    sim_scores_movies = sim_scores_movies[1:21]## Get the scores of the 20 most similar movies
-    movie_indices = [i[0] for i in sim_scores_movies] ## Get the movie indices
+    sim_scores_movies = sim_scores_movies[1:21]# Get the scores of the 20 most similar movies
+    movie_indices = [i[0] for i in sim_scores_movies] # Get the movie indices
     top_movies=movies_df['title'].iloc[movie_indices]
     return dumps({"top_similar_content_movies":top_movies}) # Return the top 20 most similar movies
 
