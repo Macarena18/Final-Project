@@ -86,7 +86,7 @@ def get_user_similarmovie(userid):#Find top movies to be recommended to user bas
     for movie_title in recommended_movie_list:# removing already watched movie from recommended list    
         if movie_title in movie_list:
             recommended_movie_list.remove(movie_title)
-    return set(recommended_movie_list)
+    return dumps({"movies":set(recommended_movie_list)})
 
 
 #@app.route("/movies/recommend/ratings/<movieid>")

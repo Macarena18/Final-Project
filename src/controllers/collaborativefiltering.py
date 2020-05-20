@@ -20,7 +20,7 @@ from sklearn.metrics.pairwise import pairwise_distances
 
 ratings=list(db.ratingid.find({},{"_id":0,"userId":1,"movieId":1,"rating":1}))
 ratings_df=pd.DataFrame(json_normalize(ratings))
-movies=list(db.movieid.find({},{"_id":0,"movieId":1,"title":1,"genres":1,"year":1,"imdbId":1,"tmdbId":1}))
+movies=list(db.movieid.find({},{"_id":0,"movieId":1,"title":1,"genres":1}))
 movies_df=pd.DataFrame(json_normalize(movies))
 movies_ratings=pd.merge(movies_df, ratings_df)
 ratings_matrix_items = movies_ratings.pivot_table(index=['movieId'],columns=['userId'],values='rating').reset_index(drop=True)
