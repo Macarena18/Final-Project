@@ -4,13 +4,11 @@ from src.app import app
 from src.config import *
 from bson.json_util import dumps
 from pandas.io.json import json_normalize
-from scipy.spatial.distance import pdist, squareform
 from sklearn.neighbors import NearestNeighbors
 from sklearn.metrics.pairwise import linear_kernel
 from sklearn.feature_extraction.text import CountVectorizer
 from src.helpers.errorHandler import APIError, errorHandler
 from sklearn.metrics.pairwise import cosine_similarity as distance
-import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import pairwise_distances
 
@@ -20,14 +18,17 @@ def TopMovies():
     movies_details=list(db.details.find({},{"_id":0,"title":1,"genres":1,"year":1,"imdbId":1,"tmdbId":1,"idmb_rank":1}))
     movies_info=pd.DataFrame(json_normalize(movies_details))
     top_movies=movies_info.sort_values(['idmb_rank'],ascending=False)[:20]
-    return dumps({"top_ranked_movies":top_movies})
+    dict={}
+    return dumps({"top_ranked_movies":top_movies.T})
 
 @app.route("/genres/<genre>", methods=["GET"])#Find top movies by genre
 def moviesGenre(genre):
     movies_details=list(db.details.find({},{"_id":0}))
     movies_info=pd.DataFrame(json_normalize(movies_details))
     top_movies= movies_info.loc[(movies_info[genre]==1)].sort_values(['idmb_rank'],ascending=False)[:20]
-    return dumps({"movieid":top_movies["movieId"],"title":top_movies["title"],"genres":top_movies["genres"],"year":top_movies["year"],"IDMB rating":top_movies["idmb_rank"]})
+    top_movies=top_movies[["movieId","title","genres","year","idmb_rank"]]
+    return dumps({"top_ranked_movies_by_genres":top_movies.T})
+    #return dumps({"movieid":top_movies["movieId"],"title":top_movies["title"],"genres":top_movies["genres"],"year":top_movies["year"],"IDMB rating":top_movies["idmb_rank"]})
 
 
 # Content Based Filtering:
@@ -70,14 +71,18 @@ def similarmovies(movie): #Find top 20 movies watched for users that saw the sam
         top_movies["rate_views"]= round(top_movies["userId"]*100/top_movies["userId"][0],1)
         top_movies=top_movies[1:21]
         print(f" These are similar movies watched by users who saw {movie}:")
-        return dumps(top_movies) # return user ids who saw the movies and the rate views of each movie
+        return dumps({"top_similar_user_movies":top_movies.T}) # return user ids who saw the movies and the rate views of each movie
 
 
 @app.route("/movies/recommend/<userid>", methods=["GET"])
 def get_user_similarmovie(userid):#Find top movies to be recommended to user based on movies user has watched
+    ratings=list(db.ratingid.find({},{"_id":0,"userId":1,"movieId":1,"rating":1}))
+    ratings_df=pd.DataFrame(json_normalize(ratings))
+    movies=list(db.movieid.find({},{"_id":0,"movieId":1,"title":1,"genres":1}))
+    movies_df=pd.DataFrame(json_normalize(movies))
     recommended_movie_list = []
     movie_list = []
-    df_rating_filtered = ratings_df[ratings_df["userId"]== userid]
+    df_rating_filtered = ratings_df[ratings_df["userId"]== str(userid)]
     for key, row in df_rating_filtered.iterrows():
         movie_list.append((movies_df["title"][row["movieId"]==movies_df["movieId"]]).values) 
     for index, movie in enumerate(movie_list):
@@ -107,5 +112,5 @@ def similaratings(movieid): # similar movies by ranking
                 #get the title of the movie
                 get_movie = movies_df.loc[movies_df['movieId']==movies_table.iloc[indices_flat,:].name]['title']
                 #print the movie
-                print('{0}: {1}:'.format(i,get_movie,distances.flatten()[i]))    
+                return dumps({"movies":get_movie})
 

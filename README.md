@@ -27,7 +27,7 @@
  - *"/movies"* --> **Get all movies**
  -* "/movies/<movie>"* --> **Get details for an specific movie**
  - *"/users"* --> **Get all users**
- - *"/ratings/<userid>"* --> **Get all ratings given for an specific user**
+ - *"/ratings/<userid>"* --> **Get all ratings given by an specific user**
  - *"/ratings/movies/<movieid>"* --> **Get all ratings for an specific movie**
  - *"/year/<year>"* --> **Get all movies for an specific year**
  - *"/genres"* --> **Get all genres**

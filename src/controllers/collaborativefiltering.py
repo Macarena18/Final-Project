@@ -6,10 +6,7 @@ from bson.json_util import dumps
 from pandas.io.json import json_normalize
 from sklearn.neighbors import NearestNeighbors
 from sklearn.metrics.pairwise import linear_kernel
-from sklearn.feature_extraction.text import CountVectorizer
-from src.helpers.errorHandler import APIError, errorHandler
 from sklearn.metrics.pairwise import cosine_similarity as distance
-import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import pairwise_distances
 

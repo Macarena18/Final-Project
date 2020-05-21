@@ -12,7 +12,8 @@ from sklearn.metrics.pairwise import cosine_similarity as distance
 import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import pairwise_distances
-from sklearn.externals import joblib
+#from sklearn.externals import joblib
+import joblib
 
 
 joblib_file="joblib_SVD_Model.pkl"
@@ -58,4 +59,4 @@ def hybrid_content_svd_model(userId): #hydrid the functionality of content based
         recommended_movies_by_content_model.loc[key, "svd_rating"] = predict.est
         recommended_movies_by_content_model=recommended_movies_by_content_model[["movieId","title","svd_rating"]]
         result=recommended_movies_by_content_model.sort_values("svd_rating", ascending=False).iloc[0:21]
-    return dumps({"ratings_prediction":result})
+    return dumps({"ratings_prediction":result.T})

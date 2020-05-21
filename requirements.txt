@@ -9,3 +9,7 @@ jsonschema
 regex
 requests
 sklearn
+joblib
+scikit-surprise
+numpy
+scipy
